@@ -9,12 +9,21 @@
  * 
  */
 #include <ArduinoBLE.h>
+#include <NewPing.h>
+
+#define TRIGGER_PIN 2
+#define ECHO_PIN 3 
+#define MAX_DISTANCE 100 //the wall mount device should not ever exceed 1 meter in height when attached to the wall, this is not a supported height
+
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 
 BLEService wallMountService("stedibalancev300bluetoothlenerg");
 BLEUnsignedIntCharacteristic distanceSensorCharacteristic("1212", BLERead | BLENotify);
 
 int triggerPin=2;
 int echoPin=3;
+
+
 
 volatile unsigned long pulseInTimeBegin = micros();//Returns the number of microseconds since the Arduino board began running the current program
 volatile unsigned long pulseInTimeEnd = micros();//Returns the number of microseconds since the Arduino board began running the current program
@@ -103,41 +112,44 @@ void loop(){
   Serial.println(distance);
   Serial.println("*****End Variable Values****");
 
-
-  switch(ultrasonicPhase){
-    case trigger:
-      ultrasonicPhase = sending;
-      digitalWrite(triggerPin, LOW);
-      delayMicroseconds(10);
-      digitalWrite(triggerPin, HIGH);
-      delayMicroseconds(20);
-      digitalWrite(triggerPin, LOW);
-      ultrasonicPhaseTime = micros();
-      break;
-    case sending:
-      // Wait until all pings have been sent by the ultrasonic sensor.
-      if((micros() - ultrasonicPhaseTime) > 500UL ) {
-      // Exit if pings are not sent fast enough
-        Serial.println("Error1: Ping not sent");
-        ultrasonicPhase = trigger;
-      } else if(digitalRead(echoPin) == HIGH) {
-        ultrasonicPhase = receive;
-        ultrasonicPhaseTime = micros();
-      }
-      break;
-    case receive:
-    // Await the echo of a ping.
-      if((micros() - ultrasonicPhaseTime) > 20000UL) {
-        // Exit if no echo is received (e.g. because too far away)
-        Serial.println("Error2: No echo received");
-        ultrasonicPhase = trigger;
-      } else if(digitalRead(echoPin) == LOW) {
-        duration = (micros() - ultrasonicPhaseTime);
-        distance = duration / 58.2;
-        ultrasonicPhase = trigger;
-      }
-      break;
-  }
+  distance = sonar.ping_cm();
+//
+//  switch(ultrasonicPhase){
+//    case trigger:
+//      ultrasonicPhase = sending;
+//      digitalWrite(triggerPin, LOW);
+//      delayMicroseconds(2);
+//      digitalWrite(triggerPin, HIGH);
+//      delayMicroseconds(10);
+//      digitalWrite(triggerPin, LOW);
+//      ultrasonicPhaseTime = micros();
+//      break;
+//    case sending:
+//      // Wait until all pings have been sent by the ultrasonic sensor.
+////      if((micros() - ultrasonicPhaseTime) > 500UL ) {
+////      // Exit if pings are not sent fast enough
+////        Serial.println("Error1: Ping not sent");
+////        ultrasonicPhase = trigger;
+////      } else 
+//      
+//      if(digitalRead(echoPin) == HIGH) {
+//        ultrasonicPhase = receive;
+//        ultrasonicPhaseTime = micros();
+//      }
+//      break;
+//    case receive:
+//    // Await the echo of a ping.
+//      if((micros() - ultrasonicPhaseTime) > 20000UL) {
+//        // Exit if no echo is received (e.g. because too far away)
+//        Serial.println("Error2: No echo received");
+//        ultrasonicPhase = trigger;
+//      } else if(digitalRead(echoPin) == LOW) {
+//        duration = (micros() - ultrasonicPhaseTime);
+//        distance = duration / 58.2;
+//        ultrasonicPhase = trigger;
+//      }
+//      break;
+//  }
 
       
     
@@ -193,5 +205,5 @@ void loop(){
 //    awaitingEchoFromSensor=true;//we now are waiting for an answer
 //  }
   
-  delay(200);            
+  delay(50);            
 }
