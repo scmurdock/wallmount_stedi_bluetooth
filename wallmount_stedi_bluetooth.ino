@@ -84,6 +84,7 @@ void loop(){
   Serial.println(distance);
   Serial.println("*****End Variable Values****");
 
+  distance = sonar.ping_cm();
 
   BLEDevice central = BLE.central();
 
