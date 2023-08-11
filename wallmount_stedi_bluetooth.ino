@@ -11,9 +11,11 @@
 #include <ArduinoBLE.h>
 #include <NewPing.h> //this library has built in interrupts, and median filtering
 
-#define TRIGGER_PIN 2
-#define ECHO_PIN 3 
+#define TRIGGER_PIN 2 //this is the trigger pin on the HC-SR04
+#define ECHO_PIN 3 // this is the echo pin on the HC-SR04
 #define MAX_DISTANCE 100 //the wall mount device should not ever exceed 1 meter in height when attached to the wall, this is not a supported height
+#define DOT_LASER_PIN 2 // this is the dot laser pin on the arduino board -- we may want to turn this on and off based off of bluetooth signals
+#define LINE_LASER_PIN 3 // this is the line laser pin on the arduino board -- we may want to turn this on and off based off of bluetooth signals
 
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 
@@ -42,12 +44,15 @@ unsigned long ultrasonicPhaseTime = 0;          // Remembers when the phase star
 
 
 void setup(){
+  pinMode(DOT_LASER_PIN, OUTPUT);
+  pinMode(LINE_LASER_PIN, OUTPUT);
   pinMode(triggerPin, OUTPUT);
   pinMode(echoPin, INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
   
   Serial.begin(9600);
 
+  while(!Serial);
   if(!BLE.begin())
   {
     if (Serial){
@@ -67,7 +72,8 @@ void setup(){
 }
 
 void loop(){
-  
+  digitalWrite(DOT_LASER_PIN, HIGH);// we have hard-coded the dot laser to be on constantly 
+  digitalWrite(LINE_LASER_PIN, HIGH);//we have hard-coded the line laser to be on constantly
 
   Serial.println("****Variable Values****");
   Serial.print("pulseInTimeBegin: ");
